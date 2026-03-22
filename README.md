@@ -41,11 +41,11 @@ Create `agent-context/AGENTS.md`, `agent-context/repos.yaml`, and
 
 `make provision` requires `agent-context/AGENTS.md`,
 `agent-context/repos.yaml`, and `agent-context/runtime.env`. It starts the
-Colima VM if needed, installs Codex, Claude Code, and GitHub CLI in the VM,
-and links `AGENTS.md` and `CLAUDE.md` at `WORKSPACE_ROOT` to the private
-instruction file. If the configured mount set differs from the running Colima
-profile, it prompts before restarting Colima to apply the change. It also syncs
-custom skills into `~/.codex/skills/` and `~/.claude/skills/`.
+Colima VM if needed, installs Codex and GitHub CLI in the VM, and links
+`AGENTS.md` at `WORKSPACE_ROOT` to the private instruction file. If the
+configured mount set differs from the running Colima profile, it prompts before
+restarting Colima to apply the change. It also syncs custom skills into
+`~/.codex/skills/`.
 
 ## Notes
 
