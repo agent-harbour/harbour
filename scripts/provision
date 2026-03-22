@@ -45,8 +45,36 @@ while IFS='|' read -r _name host mode; do
   fi
 done < <(repo_lines)
 
+desired_mounts=$(desired_mount_lines | sort)
+current_mounts=$(current_mount_lines | sort)
+
 if colima_status; then
-  printf "Colima profile %s is already running.\n" "${COLIMA_PROFILE}"
+  if [[ "${desired_mounts}" != "${current_mounts}" ]]; then
+    printf "Configured mounts differ from the running Colima profile %s.\n" "${COLIMA_PROFILE}"
+    printf "\nDesired mounts:\n"
+    while IFS='|' read -r host mode; do
+      [[ -n "${host}" ]] || continue
+      printf "  %s (%s)\n" "${host}" "${mode}"
+    done <<< "${desired_mounts}"
+    printf "\nCurrent mounts:\n"
+    while IFS='|' read -r host mode; do
+      [[ -n "${host}" ]] || continue
+      printf "  %s (%s)\n" "${host}" "${mode}"
+    done <<< "${current_mounts}"
+    printf "\nRestart Colima now to apply mount changes? [y/N] "
+    read -r reply
+    if [[ ! "${reply}" =~ ^[Yy]$ ]]; then
+      printf "Aborted without restarting Colima.\n" >&2
+      exit 1
+    fi
+    colima stop -p "${COLIMA_PROFILE}"
+    printf "Executing:\n  "
+    printf "%q " "${cmd[@]}"
+    printf "\n"
+    "${cmd[@]}"
+  else
+    printf "Colima profile %s is already running.\n" "${COLIMA_PROFILE}"
+  fi
 else
   printf "Executing:\n  "
   printf "%q " "${cmd[@]}"

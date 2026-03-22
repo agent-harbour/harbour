@@ -40,6 +40,32 @@ repo_lines() {
   ' "${REPOS_FILE}"
 }
 
+desired_mount_lines() {
+  require_var AGENT_CONTEXT_HOST_PATH
+  printf "%s|rw\n" "${AGENT_CONTEXT_HOST_PATH}"
+  while IFS='|' read -r _name host mode; do
+    printf "%s|%s\n" "${host}" "${mode}"
+  done < <(repo_lines)
+}
+
+current_mount_lines() {
+  require_var COLIMA_PROFILE
+  local profile_config="${HOME}/.colima/${COLIMA_PROFILE}/colima.yaml"
+  if [[ ! -f "${profile_config}" ]]; then
+    return 0
+  fi
+
+  awk '
+    /^mounts:/ {in_mounts=1; next}
+    in_mounts && /^[^[:space:]]/ {in_mounts=0}
+    in_mounts && $1 == "-" && $2 == "location:" {location=$3}
+    in_mounts && $1 == "writable:" {
+      mode = ($2 == "true") ? "rw" : "ro"
+      printf "%s|%s\n", location, mode
+    }
+  ' "${profile_config}"
+}
+
 state_root() {
   require_var AGENT_CONTEXT_HOST_PATH
   printf "%s\n" "${AGENT_CONTEXT_HOST_PATH}"

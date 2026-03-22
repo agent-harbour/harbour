@@ -28,9 +28,6 @@ if ! colima_status; then
   exit 1
 fi
 
-repo_paths=$(repo_lines | awk -F'|' '{print $2}')
-repo_paths_b64=$(printf "%s\n" "${repo_paths}" | base64 | tr -d '\n')
-
 printf "Launching Codex in Colima profile %s\n" "${COLIMA_PROFILE}"
 cd "${WORKSPACE_ROOT}"
 exec colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc '
@@ -38,7 +35,6 @@ set -euo pipefail
 
 workspace_root="'"${WORKSPACE_ROOT}"'"
 agent_context_dir="'"${AGENT_CONTEXT_HOST_PATH}"'"
-repo_paths_b64="'"${repo_paths_b64}"'"
 yolo_mode="'"${yolo_mode}"'"
 
 if ! command -v codex >/dev/null 2>&1; then
@@ -64,22 +60,11 @@ if [[ ! -d "${agent_context_dir}" ]]; then
   exit 127
 fi
 
-repo_paths=$(printf "%s" "${repo_paths_b64}" | base64 -d)
-
 if [[ "${yolo_mode}" == "true" ]]; then
   args=(--dangerously-bypass-approvals-and-sandbox -C "${workspace_root}")
 else
-  args=(--sandbox workspace-write -C "${workspace_root}" --add-dir "${agent_context_dir}")
+  args=(--sandbox workspace-write -C "${workspace_root}")
 fi
-
-while IFS= read -r repo_path; do
-  [[ -n "${repo_path}" ]] || continue
-  if [[ "${yolo_mode}" != "true" ]]; then
-    args+=(--add-dir "${repo_path}")
-  fi
-done <<EOF
-${repo_paths}
-EOF
 
 exec codex "${args[@]}"
 '

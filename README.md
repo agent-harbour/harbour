@@ -4,9 +4,9 @@ Shareable harness for a Colima-backed, cross-repo coding agent.
 
 This repo is the entry point for day-to-day work. It keeps:
 
-- the harness configuration and launch scripts
-- the harness ADRs and architecture
-- scripts and `make` targets to launch the VM workspace
+- The harness configuration and launch scripts
+- The harness ADRs and architecture
+- Scripts and `make` targets to launch the VM workspace
 
 Over time, durable personal working state should move to a separate private repo
 such as `agent-context`.
@@ -43,8 +43,9 @@ Create `agent-context/AGENTS.md`, `agent-context/repos.yaml`, and
 `agent-context/repos.yaml`, and `agent-context/runtime.env`. It starts the
 Colima VM if needed, installs Codex, Claude Code, and GitHub CLI in the VM,
 and links `AGENTS.md` and `CLAUDE.md` at `WORKSPACE_ROOT` to the private
-instruction file. It also syncs custom skills into `~/.codex/skills/` and
-`~/.claude/skills/`.
+instruction file. If the configured mount set differs from the running Colima
+profile, it prompts before restarting Colima to apply the change. It also syncs
+custom skills into `~/.codex/skills/` and `~/.claude/skills/`.
 
 ## Notes
 
