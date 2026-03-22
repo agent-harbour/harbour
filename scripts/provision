@@ -1,0 +1,150 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+source "${0:A:h}/_common.sh"
+require_var COLIMA_RUNTIME
+require_var COLIMA_VM_TYPE
+require_var COLIMA_ARCH
+require_var COLIMA_CPU
+require_var COLIMA_MEMORY
+require_var COLIMA_DISK
+require_var COLIMA_MOUNT_TYPE
+require_var COLIMA_FORWARD_SSH_AGENT
+require_var COLIMA_NETWORK_ADDRESS
+require_var COLIMA_PROFILE
+require_var CODEX_VERSION
+require_var CLAUDE_CODE_INSTALLER_URL
+require_var AGENT_CONTEXT_HOST_PATH
+require_var WORKSPACE_ROOT
+
+cmd=(colima start "${COLIMA_PROFILE}"
+  --runtime "${COLIMA_RUNTIME}"
+  --vm-type "${COLIMA_VM_TYPE}"
+  --arch "${COLIMA_ARCH}"
+  --cpu "${COLIMA_CPU}"
+  --memory "${COLIMA_MEMORY}"
+  --disk "${COLIMA_DISK}"
+  --mount-type "${COLIMA_MOUNT_TYPE}")
+
+if bool_flag "${COLIMA_FORWARD_SSH_AGENT}"; then
+  cmd+=(--ssh-agent)
+fi
+
+if bool_flag "${COLIMA_NETWORK_ADDRESS}"; then
+  cmd+=(--network-address)
+fi
+
+cmd+=(--mount "${AGENT_CONTEXT_HOST_PATH}:w")
+
+while IFS='|' read -r _name host mode; do
+  if [[ "${mode}" == "rw" ]]; then
+    cmd+=(--mount "${host}:w")
+  else
+    cmd+=(--mount "${host}")
+  fi
+done < <(repo_lines)
+
+if colima_status; then
+  printf "Colima profile %s is already running.\n" "${COLIMA_PROFILE}"
+else
+  printf "Executing:\n  "
+  printf "%q " "${cmd[@]}"
+  printf "\n"
+  "${cmd[@]}"
+fi
+
+agent_context_agents="${AGENT_CONTEXT_HOST_PATH}/AGENTS.md"
+agent_context_skills_dir="${AGENT_CONTEXT_HOST_PATH}/skills"
+if [[ ! -f "${agent_context_agents}" ]]; then
+  printf "%s is missing. Create it in agent-context before provisioning.\n" "${agent_context_agents}" >&2
+  exit 1
+fi
+
+printf "Installing Codex %s and Claude Code in Colima profile %s\n" "${CODEX_VERSION}" "${COLIMA_PROFILE}"
+
+agent_context_agents_b64=$(base64 < "${agent_context_agents}" | tr -d '\n')
+host_uid=$(id -u)
+host_gid=$(id -g)
+
+cd "${WORKSPACE_ROOT}"
+colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc "
+set -euo pipefail
+
+version='${CODEX_VERSION}'
+claude_code_installer_url='${CLAUDE_CODE_INSTALLER_URL}'
+agent_context_agents_path='${agent_context_agents}'
+agent_context_skills_dir='${agent_context_skills_dir}'
+agent_context_agents_b64='${agent_context_agents_b64}'
+host_uid='${host_uid}'
+host_gid='${host_gid}'
+workspace_root='${WORKSPACE_ROOT}'
+agent_bin_dir=\"\${HOME}/.local/bin\"
+codex_path=\"\${agent_bin_dir}/codex\"
+codex_skills_dir=\"\${HOME}/.codex/skills\"
+claude_skills_dir=\"\${HOME}/.claude/skills\"
+tmpdir=\$(mktemp -d)
+trap 'rm -rf \"\${tmpdir}\"' EXIT
+
+arch=\$(uname -m)
+case \"\${arch}\" in
+  aarch64|arm64)
+    archive_name=\"codex-aarch64-unknown-linux-musl.tar.gz\"
+    binary_name=\"codex-aarch64-unknown-linux-musl\"
+    ;;
+  x86_64|amd64)
+    archive_name=\"codex-x86_64-unknown-linux-musl.tar.gz\"
+    binary_name=\"codex-x86_64-unknown-linux-musl\"
+    ;;
+  *)
+    echo \"Unsupported VM architecture: \${arch}\" >&2
+    exit 1
+    ;;
+esac
+
+url=\"https://github.com/openai/codex/releases/download/rust-v\${version}/\${archive_name}\"
+
+mkdir -p \"\${agent_bin_dir}\"
+current_version=\"\"
+if [[ -x \"\${codex_path}\" ]]; then
+  current_version=\$(\"\${codex_path}\" --version 2>/dev/null | awk '{print \$2}')
+fi
+
+if ! command -v make >/dev/null 2>&1 || ! command -v rg >/dev/null 2>&1 || ! command -v gh >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo apt-get install -y gh make ripgrep
+fi
+
+if [[ \"\${current_version}\" != \"\${version}\" ]]; then
+  curl -fsSL \"\${url}\" -o \"\${tmpdir}/codex.tar.gz\"
+  tar -xzf \"\${tmpdir}/codex.tar.gz\" -C \"\${tmpdir}\"
+  install -m 0755 \"\${tmpdir}/\${binary_name}\" \"\${codex_path}\"
+fi
+
+if ! command -v claude >/dev/null 2>&1; then
+  installer_path=\"\${tmpdir}/claude-install.sh\"
+  curl -fsSL \"\${claude_code_installer_url}\" -o \"\${installer_path}\"
+  bash \"\${installer_path}\"
+fi
+
+if [[ ! -f \"\${agent_context_agents_path}\" ]]; then
+  tmp_agents=\$(mktemp)
+  trap 'rm -rf \"\${tmpdir}\" \"\${tmp_agents}\"' EXIT
+  printf '%s' \"\${agent_context_agents_b64}\" | base64 -d > \"\${tmp_agents}\"
+  sudo install -o \"\${host_uid}\" -g \"\${host_gid}\" -m 0644 \"\${tmp_agents}\" \"\${agent_context_agents_path}\"
+fi
+
+mkdir -p \"\${codex_skills_dir}\" \"\${claude_skills_dir}\"
+if [[ -d \"\${agent_context_skills_dir}\" ]]; then
+  while IFS= read -r skill_dir; do
+    skill_name=\$(basename \"\${skill_dir}\")
+    ln -sfn \"\${skill_dir}\" \"\${codex_skills_dir}/\${skill_name}\"
+    ln -sfn \"\${skill_dir}\" \"\${claude_skills_dir}/\${skill_name}\"
+  done < <(find \"\${agent_context_skills_dir}\" -mindepth 1 -maxdepth 1 -type d | sort)
+fi
+
+sudo ln -sfn \"\${agent_context_agents_path}\" \"\${workspace_root}/AGENTS.md\"
+sudo ln -sfn \"\${agent_context_agents_path}\" \"\${workspace_root}/CLAUDE.md\"
+"
+
+printf "Provisioned Codex %s and Claude Code, linked %s/AGENTS.md and %s/CLAUDE.md, and synced custom skills.\n" "${CODEX_VERSION}" "${WORKSPACE_ROOT}" "${WORKSPACE_ROOT}"

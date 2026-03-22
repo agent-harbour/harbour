@@ -1,0 +1,85 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+source "${0:A:h}/_common.sh"
+require_var COLIMA_PROFILE
+require_var AGENT_CONTEXT_HOST_PATH
+require_var WORKSPACE_ROOT
+
+yolo_mode=false
+
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+    --yolo)
+      yolo_mode=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: ${1}" >&2
+      echo "Usage: $0 [--yolo]" >&2
+      exit 2
+      ;;
+  esac
+done
+
+if ! colima_status; then
+  printf "Colima profile %s is not running. Start it with make provision.\n" "${COLIMA_PROFILE}" >&2
+  exit 1
+fi
+
+repo_paths=$(repo_lines | awk -F'|' '{print $2}')
+repo_paths_b64=$(printf "%s\n" "${repo_paths}" | base64 | tr -d '\n')
+
+printf "Launching Codex in Colima profile %s\n" "${COLIMA_PROFILE}"
+cd "${WORKSPACE_ROOT}"
+exec colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc '
+set -euo pipefail
+
+workspace_root="'"${WORKSPACE_ROOT}"'"
+agent_context_dir="'"${AGENT_CONTEXT_HOST_PATH}"'"
+repo_paths_b64="'"${repo_paths_b64}"'"
+yolo_mode="'"${yolo_mode}"'"
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "codex is not installed in the VM. Run make provision." >&2
+  exit 127
+fi
+
+if [[ ! -d "${workspace_root}" ]]; then
+  echo "${workspace_root} is not visible in the VM." >&2
+  echo "Check the current mount layout and restart Colima with make destroy && make provision." >&2
+  exit 127
+fi
+
+if [[ ! -f "${workspace_root}/AGENTS.md" ]]; then
+  echo "${workspace_root}/AGENTS.md is missing in the VM." >&2
+  echo "Run make provision." >&2
+  exit 127
+fi
+
+if [[ ! -d "${agent_context_dir}" ]]; then
+  echo "agent-context is not mounted in the VM at ${agent_context_dir}." >&2
+  echo "Check the sibling agent-context repo and restart Colima with make destroy && make provision." >&2
+  exit 127
+fi
+
+repo_paths=$(printf "%s" "${repo_paths_b64}" | base64 -d)
+
+if [[ "${yolo_mode}" == "true" ]]; then
+  args=(--dangerously-bypass-approvals-and-sandbox -C "${workspace_root}")
+else
+  args=(--sandbox workspace-write -C "${workspace_root}" --add-dir "${agent_context_dir}")
+fi
+
+while IFS= read -r repo_path; do
+  [[ -n "${repo_path}" ]] || continue
+  if [[ "${yolo_mode}" != "true" ]]; then
+    args+=(--add-dir "${repo_path}")
+  fi
+done <<EOF
+${repo_paths}
+EOF
+
+exec codex "${args[@]}"
+'
