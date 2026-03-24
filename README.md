@@ -10,7 +10,7 @@ Your private local configuration lives in `harbour-context`.
 
 1. Set up your context repo from `harbour-context-skeleton`
 
-   See `../harbour-context-skeleton/README.md`
+   See [agent-harbour/harbour-context-skeleton/README.md](https://github.com/agent-harbour/harbour-context-skeleton)
 
 2. Provision the VM
 
