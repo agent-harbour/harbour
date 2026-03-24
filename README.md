@@ -1,14 +1,16 @@
 # harbour
 
-Colima-backed harness for running Codex across your mounted repos with host isolation.
-
-`harbour` runs the agent inside an isolated VM while keeping it effective across multiple repos.
-
-Your private local configuration lives in `harbour-context`.
+- A colima VM with Codex running in it
+- Your repos are mounted into it, defined in `repos.yaml`
+- An `AGENTS.md` is mounted
+- Skills are mounted
+- `make agent`/ `make yolo` puts you onto the agent
 
 ## Getting started
 
-1. Set up your context repo from `harbour-context-skeleton`
+1. Set up your context repo
+
+   Your personal context is stored in a separate repo, `harbour-context`.
 
    See [agent-harbour/harbour-context-skeleton/README.md](https://github.com/agent-harbour/harbour-context-skeleton)
 
@@ -18,11 +20,9 @@ Your private local configuration lives in `harbour-context`.
    make provision
    ```
 
-   `make provision` will prompt for `HARBOUR_CONTEXT_HOST_PATH` if needed and
-   save it to `~/.config/agent-harbour/env`.
-
    It will:
 
+   - Prompt for `HARBOUR_CONTEXT_HOST_PATH` if not set
    - Start the Colima profile
    - Mount `harbour-context`
    - Mount the work repos from `harbour-context/repos.yaml`
