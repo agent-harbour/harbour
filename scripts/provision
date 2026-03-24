@@ -59,11 +59,8 @@ fi
 cmd+=(--mount "${HARBOUR_CONTEXT_HOST_PATH}:w")
 
 while IFS='|' read -r _name host mode; do
-  if [[ "${mode}" == "rw" ]]; then
-    cmd+=(--mount "${host}:w")
-  else
-    cmd+=(--mount "${host}")
-  fi
+  [[ -n "${host}" ]] || continue
+  cmd+=(--mount "${host}:w")
 done < <(repo_lines)
 
 desired_mounts=$(desired_mount_lines | sort)

@@ -53,17 +53,17 @@ repo_lines() {
     exit 1
   fi
   awk '
-    $1 == "-" && $2 == "name:" {name=$3}
-    $1 == "host_path:" {host=$2}
-    $1 == "mode:" {mode=$2; printf "%s|%s|%s\n", name, host, mode}
+    $1 == "-" && $2 == "host_path:" {print $3}
+    $1 == "host_path:" {print $2}
   ' "${REPOS_FILE}"
 }
 
 desired_mount_lines() {
   require_var HARBOUR_CONTEXT_HOST_PATH
   printf "%s|rw\n" "${HARBOUR_CONTEXT_HOST_PATH}"
-  while IFS='|' read -r _name host mode; do
-    printf "%s|%s\n" "${host}" "${mode}"
+  while IFS= read -r host; do
+    [[ -n "${host}" ]] || continue
+    printf "%s|rw\n" "${host}"
   done < <(repo_lines)
 }
 
