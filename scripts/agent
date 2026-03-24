@@ -4,7 +4,7 @@ set -euo pipefail
 
 source "${0:A:h}/_common.sh"
 require_var COLIMA_PROFILE
-require_var AGENT_CONTEXT_HOST_PATH
+require_var HARBOUR_CONTEXT_HOST_PATH
 require_var WORKSPACE_ROOT
 
 yolo_mode=false
@@ -34,7 +34,7 @@ exec colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc '
 set -euo pipefail
 
 workspace_root="'"${WORKSPACE_ROOT}"'"
-agent_context_dir="'"${AGENT_CONTEXT_HOST_PATH}"'"
+harbour_context_dir="'"${HARBOUR_CONTEXT_HOST_PATH}"'"
 yolo_mode="'"${yolo_mode}"'"
 
 if ! command -v codex >/dev/null 2>&1; then
@@ -54,9 +54,9 @@ if [[ ! -f "${workspace_root}/AGENTS.md" ]]; then
   exit 127
 fi
 
-if [[ ! -d "${agent_context_dir}" ]]; then
-  echo "agent-context is not mounted in the VM at ${agent_context_dir}." >&2
-  echo "Check the sibling agent-context repo, stop the Colima profile, and run make provision again." >&2
+if [[ ! -d "${harbour_context_dir}" ]]; then
+  echo "harbour-context is not mounted in the VM at ${harbour_context_dir}." >&2
+  echo "Check the sibling harbour-context repo, stop the Colima profile, and run make provision again." >&2
   exit 127
 fi
 

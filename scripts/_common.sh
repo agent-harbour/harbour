@@ -5,19 +5,18 @@ set -euo pipefail
 SCRIPT_DIR=${0:A:h}
 PROJECT_ROOT=${SCRIPT_DIR:h}
 COLIMA_ENV="${PROJECT_ROOT}/config/colima.env"
-AGENT_CONTEXT_HOST_PATH="${PROJECT_ROOT:h}/agent-context"
-
+HARBOUR_CONTEXT_HOST_PATH="${PROJECT_ROOT:h}/harbour-context"
 if [[ -f "${COLIMA_ENV}" ]]; then
   source "${COLIMA_ENV}"
 fi
 
-RUNTIME_ENV="${AGENT_CONTEXT_HOST_PATH}/runtime.env"
+RUNTIME_ENV="${HARBOUR_CONTEXT_HOST_PATH}/runtime.env"
 
 if [[ -f "${RUNTIME_ENV}" ]]; then
   source "${RUNTIME_ENV}"
 fi
 
-REPOS_FILE="${AGENT_CONTEXT_HOST_PATH}/repos.yaml"
+REPOS_FILE="${HARBOUR_CONTEXT_HOST_PATH}/repos.yaml"
 
 require_var() {
   local name=$1
@@ -28,9 +27,9 @@ require_var() {
 }
 
 repo_lines() {
-  require_var AGENT_CONTEXT_HOST_PATH
+  require_var HARBOUR_CONTEXT_HOST_PATH
   if [[ ! -f "${REPOS_FILE}" ]]; then
-    printf "%s is missing. Create it in agent-context.\n" "${REPOS_FILE}" >&2
+    printf "%s is missing. Create it in harbour-context.\n" "${REPOS_FILE}" >&2
     exit 1
   fi
   awk '
@@ -41,8 +40,8 @@ repo_lines() {
 }
 
 desired_mount_lines() {
-  require_var AGENT_CONTEXT_HOST_PATH
-  printf "%s|rw\n" "${AGENT_CONTEXT_HOST_PATH}"
+  require_var HARBOUR_CONTEXT_HOST_PATH
+  printf "%s|rw\n" "${HARBOUR_CONTEXT_HOST_PATH}"
   while IFS='|' read -r _name host mode; do
     printf "%s|%s\n" "${host}" "${mode}"
   done < <(repo_lines)
@@ -67,8 +66,8 @@ current_mount_lines() {
 }
 
 state_root() {
-  require_var AGENT_CONTEXT_HOST_PATH
-  printf "%s\n" "${AGENT_CONTEXT_HOST_PATH}"
+  require_var HARBOUR_CONTEXT_HOST_PATH
+  printf "%s\n" "${HARBOUR_CONTEXT_HOST_PATH}"
 }
 
 bool_flag() {

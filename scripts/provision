@@ -14,7 +14,7 @@ require_var COLIMA_FORWARD_SSH_AGENT
 require_var COLIMA_NETWORK_ADDRESS
 require_var COLIMA_PROFILE
 require_var CODEX_VERSION
-require_var AGENT_CONTEXT_HOST_PATH
+require_var HARBOUR_CONTEXT_HOST_PATH
 require_var WORKSPACE_ROOT
 
 cmd=(colima start "${COLIMA_PROFILE}"
@@ -34,7 +34,7 @@ if bool_flag "${COLIMA_NETWORK_ADDRESS}"; then
   cmd+=(--network-address)
 fi
 
-cmd+=(--mount "${AGENT_CONTEXT_HOST_PATH}:w")
+cmd+=(--mount "${HARBOUR_CONTEXT_HOST_PATH}:w")
 
 while IFS='|' read -r _name host mode; do
   if [[ "${mode}" == "rw" ]]; then
@@ -81,10 +81,10 @@ else
   "${cmd[@]}"
 fi
 
-agent_context_agents="${AGENT_CONTEXT_HOST_PATH}/AGENTS.md"
-agent_context_skills_dir="${AGENT_CONTEXT_HOST_PATH}/skills"
-if [[ ! -f "${agent_context_agents}" ]]; then
-  printf "%s is missing. Create it in agent-context before provisioning.\n" "${agent_context_agents}" >&2
+harbour_context_agents="${HARBOUR_CONTEXT_HOST_PATH}/AGENTS.md"
+harbour_context_skills_dir="${HARBOUR_CONTEXT_HOST_PATH}/skills"
+if [[ ! -f "${harbour_context_agents}" ]]; then
+  printf "%s is missing. Create it in harbour-context before provisioning.\n" "${harbour_context_agents}" >&2
   exit 1
 fi
 
@@ -95,7 +95,7 @@ else
   printf "Installing Codex %s in Colima profile %s\n" "${requested_version}" "${COLIMA_PROFILE}"
 fi
 
-agent_context_agents_b64=$(base64 < "${agent_context_agents}" | tr -d '\n')
+harbour_context_agents_b64=$(base64 < "${harbour_context_agents}" | tr -d '\n')
 host_uid=$(id -u)
 host_gid=$(id -g)
 
@@ -104,9 +104,9 @@ colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc "
 set -euo pipefail
 
 requested_version='${requested_version}'
-agent_context_agents_path='${agent_context_agents}'
-agent_context_skills_dir='${agent_context_skills_dir}'
-agent_context_agents_b64='${agent_context_agents_b64}'
+harbour_context_agents_path='${harbour_context_agents}'
+harbour_context_skills_dir='${harbour_context_skills_dir}'
+harbour_context_agents_b64='${harbour_context_agents_b64}'
 host_uid='${host_uid}'
 host_gid='${host_gid}'
 workspace_root='${WORKSPACE_ROOT}'
@@ -163,22 +163,22 @@ if [[ \"\${current_version}\" != \"\${version}\" ]]; then
   install -m 0755 \"\${tmpdir}/\${binary_name}\" \"\${codex_path}\"
 fi
 
-if [[ ! -f \"\${agent_context_agents_path}\" ]]; then
+if [[ ! -f \"\${harbour_context_agents_path}\" ]]; then
   tmp_agents=\$(mktemp)
   trap 'rm -rf \"\${tmpdir}\" \"\${tmp_agents}\"' EXIT
-  printf '%s' \"\${agent_context_agents_b64}\" | base64 -d > \"\${tmp_agents}\"
-  sudo install -o \"\${host_uid}\" -g \"\${host_gid}\" -m 0644 \"\${tmp_agents}\" \"\${agent_context_agents_path}\"
+  printf '%s' \"\${harbour_context_agents_b64}\" | base64 -d > \"\${tmp_agents}\"
+  sudo install -o \"\${host_uid}\" -g \"\${host_gid}\" -m 0644 \"\${tmp_agents}\" \"\${harbour_context_agents_path}\"
 fi
 
 mkdir -p \"\${codex_skills_dir}\"
-if [[ -d \"\${agent_context_skills_dir}\" ]]; then
+if [[ -d \"\${harbour_context_skills_dir}\" ]]; then
   while IFS= read -r skill_dir; do
     skill_name=\$(basename \"\${skill_dir}\")
     ln -sfn \"\${skill_dir}\" \"\${codex_skills_dir}/\${skill_name}\"
-  done < <(find \"\${agent_context_skills_dir}\" -mindepth 1 -maxdepth 1 -type d | sort)
+  done < <(find \"\${harbour_context_skills_dir}\" -mindepth 1 -maxdepth 1 -type d | sort)
 fi
 
-sudo ln -sfn \"\${agent_context_agents_path}\" \"\${workspace_root}/AGENTS.md\"
+sudo ln -sfn \"\${harbour_context_agents_path}\" \"\${workspace_root}/AGENTS.md\"
 "
 
 printf "Provisioned Codex %s, linked %s/AGENTS.md, and synced custom skills.\n" "${requested_version}" "${WORKSPACE_ROOT}"
