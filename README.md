@@ -1,62 +1,65 @@
-# agent
+# harbour
 
-Shareable harness for a Colima-backed, cross-repo coding agent.
+Colima-backed harness for running Codex across your mounted repos with host isolation.
 
-This repo is the entry point for day-to-day work. It keeps:
+`harbour` runs the agent inside an isolated VM while keeping it effective across multiple repos.
 
-- The harness configuration and launch scripts
-- The harness ADRs and architecture
-- Scripts and `make` targets to launch the VM workspace
+Your private local configuration lives in `harbour-context`.
 
-Over time, durable personal working state should move to a separate private repo
-such as `agent-context`.
+## Getting started
 
-That private repo now holds:
+1. Set up your context repo from `harbour-context-skeleton`
 
-- `todo.md`
-- `notes.md`
-- `repos.yaml`
-- `runtime.env`
+   See `../harbour-context-skeleton/README.md`
+
+2. Provision the VM
+
+   ```sh
+   make provision
+   ```
+
+   `make provision` will prompt for `HARBOUR_CONTEXT_HOST_PATH` if needed and
+   save it to `~/.config/agent-harbour/env`.
+
+   It will:
+
+   - Start the Colima profile
+   - Mount `harbour-context`
+   - Mount the work repos from `harbour-context/repos.yaml`
+   - Install or update `codex`, `gh`, `make`, and `rg` in the VM
+   - Link `AGENTS.md` at `WORKSPACE_ROOT`
+   - Sync custom skills from `harbour-context/skills`
+
+3. Start the agent
+
+   ```sh
+   make agent
+   ```
 
 ## Layout
 
-- `Makefile`: stable operator commands
-- `config/colima.env`: Colima runtime defaults
-- `scripts/`: implementation for `make` targets
-- `docs/architecture.md`: operating model and handoff design
-- `docs/adr/`: harness decisions
+- `Makefile`: Stable entry points
+- `config/colima.env`: Colima defaults
+- `scripts/`: Provisioning and launch scripts
+- `docs/architecture.md`: Runtime model
+- `docs/adr/`: Design decisions
 
 ## Usage
 
 ```sh
 make help
 make provision
+make shell
 make agent
+make yolo
 ```
-
-## Bootstrap
-
-Create `agent-context/AGENTS.md`, `agent-context/repos.yaml`, and
-`agent-context/runtime.env` from your skeleton repo structure.
-
-`make provision` requires `agent-context/AGENTS.md`,
-`agent-context/repos.yaml`, and `agent-context/runtime.env`. It starts the
-Colima VM if needed, installs Codex and GitHub CLI in the VM, and links
-`AGENTS.md` at `WORKSPACE_ROOT` to the private instruction file. If the
-configured mount set differs from the running Colima profile, it prompts before
-restarting Colima to apply the change. It also syncs custom skills into
-`~/.codex/skills/`. Set `CODEX_VERSION=latest` in
-`config/colima.env` to update to the newest Codex release on each run, or pin a
-specific version such as `0.114.0` to hold it steady.
 
 ## Notes
 
-The intended runtime is a Colima VM. The agent process should run directly in
-the VM, alongside repo containers, rather than inside its own container.
+The intended runtime is a Colima VM. Codex runs directly in the VM, alongside
+repo containers, rather than inside its own container.
 
-Keep host isolation meaningful by mounting only the repo paths declared in
-`agent-context/repos.yaml`. Anything mounted into the VM is intentionally shared with
-the agent and repo containers.
+Mount only the repo paths declared in `harbour-context/repos.yaml`. Anything
+mounted into the VM is intentionally shared with the agent and repo containers.
 
-`make agent` launches Codex with `workspace-write` so the mounted repos and
-`agent-context` are writable.
+Each entry in `repos.yaml` is a `host_path` and is mounted read-write.
