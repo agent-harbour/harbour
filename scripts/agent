@@ -5,8 +5,8 @@ set -euo pipefail
 source "${0:A:h}/_common.sh"
 require_var COLIMA_PROFILE
 require_var HARBOUR_CONTEXT_HOST_PATH
-require_var WORKSPACE_ROOT
-require_var ACTIVE_AGENT
+require_var HARBOUR_WORKSPACE_ROOT
+require_var HARBOUR_ACTIVE_AGENT
 
 yolo_mode=false
 
@@ -29,7 +29,7 @@ if ! colima_status; then
   exit 1
 fi
 
-case "${ACTIVE_AGENT}" in
+case "${HARBOUR_ACTIVE_AGENT}" in
   codex)
     agent_name="Codex"
     agent_command="codex"
@@ -41,17 +41,17 @@ case "${ACTIVE_AGENT}" in
     instruction_file="CLAUDE.md"
     ;;
   *)
-    printf "Unsupported ACTIVE_AGENT=%s. Run make provision and choose codex or claude.\n" "${ACTIVE_AGENT}" >&2
+    printf "Unsupported HARBOUR_ACTIVE_AGENT=%s. Run make provision and choose codex or claude.\n" "${HARBOUR_ACTIVE_AGENT}" >&2
     exit 1
     ;;
 esac
 
 printf "Launching %s in Colima profile %s\n" "${agent_name}" "${COLIMA_PROFILE}"
-cd "${WORKSPACE_ROOT}"
+cd "${HARBOUR_WORKSPACE_ROOT}"
 exec colima ssh -p "${COLIMA_PROFILE}" -- /usr/bin/bash -lc '
 set -euo pipefail
 
-workspace_root="'"${WORKSPACE_ROOT}"'"
+workspace_root="'"${HARBOUR_WORKSPACE_ROOT}"'"
 harbour_context_dir="'"${HARBOUR_CONTEXT_HOST_PATH}"'"
 yolo_mode="'"${yolo_mode}"'"
 agent_name="'"${agent_name}"'"
