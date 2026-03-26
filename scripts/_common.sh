@@ -53,7 +53,7 @@ EOF
   refresh_context_files
 }
 
-repo_lines() {
+resolved_repo_lines() {
   require_var HARBOUR_CONTEXT_HOST_PATH
   if [[ ! -f "${REPOS_FILE}" ]]; then
     printf "%s is missing. Create it in harbour-context.\n" "${REPOS_FILE}" >&2
@@ -84,6 +84,21 @@ repo_lines() {
       }
     ' "${REPOS_FILE}"
   )
+}
+
+repo_lines() {
+  local warn_missing=${1:-false}
+  while IFS= read -r host; do
+    [[ -n "${host}" ]] || continue
+    if [[ -d "${host}" ]]; then
+      printf "%s\n" "${host}"
+      continue
+    fi
+
+    if bool_flag "${warn_missing}"; then
+      printf "Warning: skipping missing repo mount %s\n" "${host}" >&2
+    fi
+  done < <(resolved_repo_lines)
 }
 
 desired_mount_lines() {

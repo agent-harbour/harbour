@@ -51,6 +51,7 @@ Harbour runs Claude or Codex in a Colima VM with controlled repo mounts and a ve
 - Start the Colima profile
 - Mount `harbour-context`
 - Mount the work repos from `harbour-context/repos.yaml`
+- Warn and skip any repo mount whose host directory does not exist
 - Install or update only the selected agent plus shared tooling in the VM
 - Remove the inactive agent from the VM
 - Link `AGENTS.md` or `CLAUDE.md` at `HARBOUR_WORKSPACE_ROOT`

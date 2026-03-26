@@ -24,7 +24,7 @@ else
 fi
 
 if [[ -z "${HARBOUR_CONTEXT_HOST_PATH:-}" ]]; then
-  printf "Forked harbour-context path, e.g. ~/git/my-harbour-context: "
+  printf "Your Harbour context path, e.g. ~/git/my-harbour-context: "
   read -r HARBOUR_CONTEXT_HOST_PATH
   if [[ -z "${HARBOUR_CONTEXT_HOST_PATH}" ]]; then
     printf "HARBOUR_CONTEXT_HOST_PATH is required.\n" >&2
@@ -151,7 +151,7 @@ cmd+=(--mount "${HARBOUR_CONTEXT_HOST_PATH}:w")
 while IFS= read -r host; do
   [[ -n "${host}" ]] || continue
   cmd+=(--mount "${host}:w")
-done < <(repo_lines)
+done < <(repo_lines true)
 
 desired_mounts=$(desired_mount_lines | sort)
 current_mounts=$(current_mount_lines | sort)
