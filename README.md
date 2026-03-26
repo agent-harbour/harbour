@@ -22,6 +22,7 @@ Harbour runs Claude or Codex in a Colima VM with controlled repo mounts and a ve
 2. Add your repo mounts to `repos.yaml`
 
    Add the `host_path` entries you want mounted into the VM
+   Relative paths are resolved from `HARBOUR_WORKSPACE_ROOT`
 
 3. Add skills and update `AGENTS.md` in your forked context
 

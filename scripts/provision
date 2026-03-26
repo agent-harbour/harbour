@@ -14,11 +14,6 @@ require_var COLIMA_FORWARD_SSH_AGENT
 require_var COLIMA_NETWORK_ADDRESS
 require_var COLIMA_PROFILE
 
-expand_home_path() {
-  local path=$1
-  printf "%s\n" "${path/#\~/${HOME}}"
-}
-
 persisted_harbour_env=false
 harbour_env_workspace_root="${HARBOUR_WORKSPACE_ROOT:-}"
 
