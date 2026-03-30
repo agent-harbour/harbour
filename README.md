@@ -1,46 +1,47 @@
 # Harbour
 
-Harbour runs Claude or Codex in a Colima VM with controlled repo mounts and a versioned shared context
+Run agents across all your repos in an isolated, shareable sandbox.
 
-- Run the agent isolated from your host machine
-- Work across multiple repos
-- Keep skills, and policy in a versioned context repo
-- Share a common agent setup across a team
-- Use Docker normally through Colima
-- Switch between Claude and Codex at provision time
+- Share a simple harness (`repos.yaml`, `AGENTS.md`, `skills/`)
+- Run agents in an isolated Colima VM
+- Run across multiple repositories in a single run
+- Keep your existing Docker workflow unchanged
+- Choose your agent (Claude or Codex) at provisioning time
 
 ## Quick start
 
-1. Fork `harbour-context-skeleton`
+1. Create your harness
+   
+   - `repos.yaml` - paths to your repos
+   - `AGENTS.md` - your agent instructions. Will be symlinked to `CLAUDE.md` on provision, if you're using Claude
+   - `skills/` - agent skills
 
-   Clone your fork
+   See https://github.com/agent-harbour/harbour-context-skeleton for an example.
 
-   ```sh
-   git clone --depth 1 git@github.com:my-user/my-harbour-context-fork.git
-   ```
+   Relatvie paths in `repos.yaml` are resolved from `HARBOUR_WORKSPACE_ROOT`
 
-2. Add your repo mounts to `repos.yaml`
-
-   Add the repo entries you want mounted into the VM
-   Relative paths are resolved from `HARBOUR_WORKSPACE_ROOT`
-
-3. Add skills and update `AGENTS.md` in your forked context
-
-   Harbour passes both to the agent
-
-4. Run provision
+2. Run provision
 
    ```sh
    make provision
    ```
 
-   `make provision` will prompt for `HARBOUR_CONTEXT_HOST_PATH`, `HARBOUR_WORKSPACE_ROOT`, and `codex` or `claude` when needed. `HARBOUR_WORKSPACE_ROOT` accepts `~`
+   `make provision` will prompt for
 
-   Run `make provision` again after changing `AGENTS.md` or skills
+   - `HARBOUR_CONTEXT_HOST_PATH` - the path to your harness
+   - `HARBOUR_WORKSPACE_ROOT` = where you keep your repos. Accepts `~`
+   - Claude or Codex
 
-5. Start the agent
+   Run `make provision` again after changing `repos`, `AGENTS.md` or `skills/`
+
+6. Start the agent
 
    ```sh
+   make agent
+   ```
+   or
+   
+   ```
    make yolo
    ```
 
