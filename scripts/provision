@@ -23,8 +23,7 @@ require_var HARBOUR_CLAUDE_CODE_VERSION
 printf "Using Harbour env %s\n" "${HARBOUR_ENV}"
 
 if [[ -z "${HARBOUR_HARNESS_PATH:-}" ]]; then
-  printf "Your Harbour harness path, e.g. ~/git/my-harbour-harness: "
-  read -r HARBOUR_HARNESS_PATH
+  prompt_input HARBOUR_HARNESS_PATH "Your Harbour harness path, e.g. ~/git/my-harbour-harness: "
   if [[ -z "${HARBOUR_HARNESS_PATH}" ]]; then
     printf "HARBOUR_HARNESS_PATH is required.\n" >&2
     exit 1
@@ -45,8 +44,7 @@ if [[ ! -f "${REPOS_FILE}" ]]; then
 fi
 
 if [[ -z "${HARBOUR_WORKSPACE_ROOT:-}" ]]; then
-  printf "Workspace root, e.g. ~/git: "
-  read -r HARBOUR_WORKSPACE_ROOT
+  prompt_input HARBOUR_WORKSPACE_ROOT "Workspace root, e.g. ~/git: "
   if [[ -z "${HARBOUR_WORKSPACE_ROOT}" ]]; then
     printf "HARBOUR_WORKSPACE_ROOT is required.\n" >&2
     exit 1

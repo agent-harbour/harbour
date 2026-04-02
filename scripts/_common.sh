@@ -39,6 +39,17 @@ expand_home_path() {
   printf "%s\n" "${path/#\~/${HOME}}"
 }
 
+prompt_input() {
+  local name=$1
+  local prompt=$2
+  if [[ -t 0 && -t 1 ]]; then
+    read -e -r -p "${prompt}" "${name}"
+  else
+    printf "%s" "${prompt}"
+    read -r "${name}"
+  fi
+}
+
 require_var() {
   local name=$1
   if [[ -z "${!name:-}" ]]; then
