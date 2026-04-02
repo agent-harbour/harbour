@@ -42,10 +42,10 @@ expand_home_path() {
 prompt_input() {
   local name=$1
   local prompt=$2
-  if [[ -t 0 && -t 1 ]]; then
-    read -e -r -p "${prompt}" "${name}"
+  if [[ -t 0 ]]; then
+    read -e -r -p "${prompt}" "${name}" 1>&2
   else
-    printf "%s" "${prompt}"
+    printf "%s" "${prompt}" >&2
     read -r "${name}"
   fi
 }

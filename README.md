@@ -39,7 +39,7 @@ brew install harbour
    - `HARBOUR_WORKSPACE_ROOT` = where you keep your repos. Accepts `~`
    - Claude or Codex
 
-   Run `harbour provision` again after changing `repos`, `AGENTS.md` or `skills/`
+   Run `harbour provision` again after changing `repos.yaml`, `AGENTS.md` or `skills/`
 
 3. Start the agent
 
