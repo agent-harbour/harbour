@@ -1,78 +1,93 @@
 # Harbour
 
-Run agents across all your repos in an isolated, shareable sandbox.
+Run agents across your repos inside an isolated Colima VM.
 
-- Share a simple harness (`repos.yaml`, `AGENTS.md`, `skills/`)
-- Run agents in an isolated Colima VM
-- Run across multiple repositories in a single run
-- Keep your existing Docker workflow unchanged
-- Choose your agent (Claude or Codex) at provisioning time
+- One Go CLI
+- One JSON config file
+- One harness repo for `repos.yaml`, `AGENTS.md`, and `skills/`
+- Go source under `cmd/harbour/`
 
-## Quick start
-
-1. Create your harness
-   
-   - `repos.yaml` - paths to your repos
-   - `AGENTS.md` - your agent instructions. Will be symlinked to `CLAUDE.md` on provision, if you're using Claude
-   - `skills/` - agent skills
-
-   See https://github.com/agent-harbour/harbour-harness-template for an example.
-
-   Relatvie paths in `repos.yaml` are resolved from `HARBOUR_WORKSPACE_ROOT`
-
-2. Run provision
-
-   ```sh
-   make provision
-   ```
-
-   `make provision` will create `~/.config/harbour/env` from `config/harbour.env.example` if it does not exist, then prompt for
-
-   - `HARBOUR_HARNESS_PATH` - the path to your harness
-   - `HARBOUR_WORKSPACE_ROOT` = where you keep your repos. Accepts `~`
-   - Claude or Codex
-
-   Run `make provision` again after changing `repos`, `AGENTS.md` or `skills/`
-
-6. Start the agent
-
-   ```sh
-   make agent
-   ```
-   or
-   
-   ```
-   make yolo
-   ```
-
-## Provisioning
-
-`make provision` will:
-
-- Create `~/.config/harbour/env` from `config/harbour.env.example` if needed
-- Start the configured Harbour profile in Colima
-- Mount `harbour-harness`
-- Mount the work repos from `harbour-harness/repos.yaml`
-- Warn and skip any repo mount whose host directory does not exist
-- Install or update only the selected agent plus shared tooling in the VM
-- Remove the inactive agent from the VM
-- Link `AGENTS.md` or `CLAUDE.md` at `HARBOUR_WORKSPACE_ROOT`
-- Sync custom skills from `harbour-harness/skills` to the selected agent's skills directory
-
-## Layout
-
-- `Makefile`: Stable entry points
-- `config/harbour.env.example`: Example local Harbour config
-- `scripts/`: Provisioning and launch scripts
-- `docs/architecture.md`: Runtime model
-- `docs/adr/`: Design decisions
-
-## Usage
+## Build
 
 ```sh
-make help
-make provision
-make shell
-make agent
-make yolo
+make build
+./bin/harbour help
+```
+
+## Quick Start
+
+1. Create your harness
+
+- `repos.yaml` lists repo mount paths
+- `AGENTS.md` contains shared instructions
+- `skills/` contains optional custom skills
+
+See https://github.com/agent-harbour/harbour-harness-template for an example.
+
+Relative `host_path` values in `repos.yaml` are resolved from `workspace_root`.
+
+2. Provision Harbour
+
+```sh
+./bin/harbour provision
+```
+
+The first run creates a config file at the platform config location for Harbour.
+On Linux this is typically `~/.config/harbour/config.json`.
+
+Provision prompts for:
+
+- `harness_path`
+- `workspace_root`
+- The active agent
+- The default `harbour` command
+
+3. Run the agent
+
+```sh
+./bin/harbour
+```
+
+Or run a command explicitly:
+
+```sh
+./bin/harbour agent
+./bin/harbour yolo
+./bin/harbour shell
+```
+
+## Config
+
+Harbour stores its config as a single JSON file.
+
+```json
+{
+  "colima_profile": "harbour",
+  "colima_runtime": "docker",
+  "colima_vm_type": "vz",
+  "colima_arch": "aarch64",
+  "colima_cpu": 4,
+  "colima_memory": 8,
+  "colima_disk": 100,
+  "colima_mount_type": "virtiofs",
+  "colima_forward_ssh_agent": true,
+  "colima_network_address": false,
+  "codex_version": "latest",
+  "claude_code_version": "latest",
+  "harness_path": "",
+  "workspace_root": "",
+  "active_agent": "",
+  "default_command": "agent"
+}
+```
+
+## Commands
+
+```sh
+./bin/harbour help
+./bin/harbour version
+./bin/harbour provision
+./bin/harbour shell
+./bin/harbour agent
+./bin/harbour yolo
 ```
