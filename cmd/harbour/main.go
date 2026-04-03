@@ -1,0 +1,95 @@
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+var version = "dev"
+
+func main() {
+	if err := run(os.Args[1:]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(args []string) error {
+	command := ""
+	if len(args) > 0 {
+		command = args[0]
+		args = args[1:]
+	}
+
+	if command == "" {
+		exists, err := configExists()
+		if err != nil {
+			return err
+		}
+		if exists {
+			cfg, err := loadConfig(false)
+			if err != nil {
+				return err
+			}
+			if cfg.DefaultCommand != "" {
+				command = cfg.DefaultCommand
+			}
+		}
+	}
+
+	switch command {
+	case "", "help", "--help", "-h":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		printUsage()
+		return nil
+	case "version", "--version", "-v":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		fmt.Printf("harbour %s\n", version)
+		return nil
+	case "provision":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		return runProvision()
+	case "shell":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		return runShell()
+	case "agent":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		return runAgent(false)
+	case "yolo":
+		if err := requireNoArgs(args); err != nil {
+			return err
+		}
+		return runAgent(true)
+	default:
+		return fmt.Errorf("unknown command: %s", command)
+	}
+}
+
+func printUsage() {
+	fmt.Println("Usage: harbour [command]")
+	fmt.Println()
+	fmt.Println("Commands:")
+	fmt.Println("  provision   Provision the Harbour VM")
+	fmt.Println("  shell       Open a shell in the Harbour VM")
+	fmt.Println("  agent       Launch the provisioned agent")
+	fmt.Println("  yolo        Launch the provisioned agent with relaxed permissions")
+	fmt.Println("  help        Show this help")
+	fmt.Println("  version     Show the Harbour version")
+}
+
+func requireNoArgs(args []string) error {
+	if len(args) == 0 {
+		return nil
+	}
+	return fmt.Errorf("unexpected arguments: %v", args)
+}

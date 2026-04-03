@@ -1,25 +1,20 @@
-SHELL := /bin/zsh
+SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-
-.PHONY: help provision shell agent yolo
+.PHONY: help build fmt test
 
 help:
 	@printf "Available targets:\n"
-	@printf "  make provision                  Interactively provision the environment\n"
-	@printf "  make shell                      Open a shell in the Colima VM\n"
-	@printf "  make agent                      Launch the agent inside the Colima VM\n"
-	@printf "  make yolo                       Launch the agent with relaxed permissions\n"
+	@printf "  make build                      Build the harbour binary\n"
+	@printf "  make fmt                        Format the Go source\n"
+	@printf "  make test                       Run the Go tests\n"
 
-provision:
-	@$(PROJECT_ROOT)/scripts/provision
+build:
+	mkdir -p bin
+	GOOS=darwin GOARCH=arm64 go build -o bin/harbour ./cmd/harbour
 
-shell:
-	@$(PROJECT_ROOT)/scripts/shell
+fmt:
+	gofmt -w ./cmd/harbour/*.go
 
-agent:
-	@$(PROJECT_ROOT)/scripts/agent
-
-yolo:
-	@$(PROJECT_ROOT)/scripts/agent --yolo
+test:
+	go test ./...

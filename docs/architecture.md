@@ -2,69 +2,55 @@
 
 ## Goals
 
-- One entry point for day-to-day work.
-- Cross-repo visibility by default.
-- VM-first execution.
-- A clean split between the shareable harness and private personal state.
+- Keep the host-side CLI small and maintainable
+- Keep the runtime model VM-first
+- Keep cross-repo access explicit through the harness
+- Keep the host-side config model boring
 
-## Model
+## Host-Side Shape
 
-The `Harbour` repo acts as the shareable harness. It owns the launch scripts,
-behaviour rules, and harness design records.
+`harbour` is a single Go binary.
 
-Personal working state should live in a separate private repo such as
-`harbour-harness`. That repo should hold `AGENTS.md`, `repos.yaml`, and any
-other private local files.
+It owns:
 
-Inside the VM, the master agent can see the mounted host repo paths declared in
-`harbour-harness/repos.yaml`, plus the workspace root declared in the local
-Harbour env.
+- Command dispatch
+- Config load and save
+- Interactive prompting
+- Mount calculation
+- Colima start, stop, and ssh orchestration
 
-The master agent keeps global awareness across repos. When a task needs deeper
-project-specific work, it reads that repo's local instructions and narrows focus
-there, but it does not lose cross-repo context.
+The host-side config is one JSON file at the Harbour config path returned by
+`os.UserConfigDir()`.
 
-The agent should run directly in the VM shell, not in its own container. Repo
-containers also run in the same VM, which avoids a nested runtime shape.
-
-## Repo Split
+## Harness Split
 
 Recommended host-side split:
 
 - `harbour`
-  Shareable harness repo
-  Holds `Makefile`, `config/`, `scripts/`, `docs/`, and harness ADRs
+  The shareable CLI repo
 - `harbour-harness`
-  Private state repo
-  Holds `AGENTS.md`, `repos.yaml`, and any other private local files
+  Private local state such as `AGENTS.md`, `repos.yaml`, and `skills/`
 
-Recommended VM exposure:
-
-- Mount work repos from the host
-- Mount the sibling `harbour-harness` repo from the host by convention
-- Link the selected root instruction file at the workspace root during provision
-- Do not mount the whole harness repo into the VM by default unless a real need appears
+Harbour treats `harbour-harness/repos.yaml` as the source of truth for mounted
+repo paths.
 
 ## VM Runtime
 
-The startup scripts are deliberately thin wrappers:
+Harbour keeps the VM setup model intentionally simple:
 
-- `harbour-harness/repos.yaml` defines allowed host-to-VM mounts
-- Each entry in `harbour-harness/repos.yaml` is mounted read-write
-- Absolute repo paths are mounted as written
-- Relative repo paths are resolved from `HARBOUR_WORKSPACE_ROOT`
-- Missing repo mount directories are warned and skipped during provision
-- `config/harbour.env.example` is a packaged example config, not a runtime input
-- `scripts/provision` copies `config/harbour.env.example` to `~/.config/harbour/env` on first run
-- `scripts/provision` starts the VM if needed, prompts before restarting when mount config drifts, prompts for the active agent, installs only that agent in the VM, removes the inactive agent, links the matching workspace instruction file, and syncs skills to the selected agent's skills directory
-- `scripts/agent` launches the provisioned agent in the VM
+- Work repos are mounted from `repos.yaml`
+- Missing repo paths are warned and skipped
+- The selected root instruction file is linked at the workspace root
+- Custom skills are symlinked into the active agent directory
+- The active agent runs directly inside the VM shell
 
-This keeps shared VM defaults in config, private runtime state in
-`harbour-harness`, and `make` as the stable entry point.
+The host-side CLI is Go. The in-VM provision step is still an embedded Bash
+script because that boundary is already shell-shaped and mostly imperative
+machine setup.
 
-Isolation comes from the VM boundary, but any path mounted from the host into
-the VM is intentionally shared. Narrow mounts are therefore part of the safety
-model, not just convenience.
+## Path Model
 
-Mirror mounted repo paths inside the VM rather than introducing a separate
-shared root. See [ADR-001](adr/001-mirror-host-repo-paths-inside-the-vm.md).
+Mounted repos keep the same absolute paths inside the VM as on the host.
+
+This avoids translation logic and keeps logs, diagnostics, and tool output
+consistent across host and VM. See [ADR-001](adr/001-mirror-host-repo-paths-inside-the-vm.md).
