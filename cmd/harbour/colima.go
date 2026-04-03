@@ -72,3 +72,47 @@ func desiredMountLines(harnessPath string, repoHosts []string) []string {
 	sort.Strings(mounts)
 	return mounts
 }
+
+func formatMountDiff(current []string, desired []string) []string {
+	currentSet := make(map[string]struct{}, len(current))
+	desiredSet := make(map[string]struct{}, len(desired))
+	all := make(map[string]struct{}, len(current)+len(desired))
+
+	for _, mount := range current {
+		currentSet[mount] = struct{}{}
+		all[mount] = struct{}{}
+	}
+	for _, mount := range desired {
+		desiredSet[mount] = struct{}{}
+		all[mount] = struct{}{}
+	}
+
+	keys := make([]string, 0, len(all))
+	for mount := range all {
+		keys = append(keys, mount)
+	}
+	sort.Strings(keys)
+
+	var diff []string
+	for _, mount := range keys {
+		_, inCurrent := currentSet[mount]
+		_, inDesired := desiredSet[mount]
+
+		switch {
+		case inCurrent && !inDesired:
+			diff = append(diff, "- "+humanizeMountLine(mount))
+		case !inCurrent && inDesired:
+			diff = append(diff, "+ "+humanizeMountLine(mount))
+		}
+	}
+
+	return diff
+}
+
+func humanizeMountLine(mount string) string {
+	parts := strings.SplitN(mount, "|", 2)
+	if len(parts) != 2 {
+		return mount
+	}
+	return fmt.Sprintf("%s (%s)", parts[0], parts[1])
+}
