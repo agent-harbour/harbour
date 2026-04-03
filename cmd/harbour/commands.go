@@ -29,7 +29,7 @@ func runProvision() error {
 	fmt.Printf("Using Harbour config %s\n", cfgPath)
 
 	if cfg.HarnessPath == "" {
-		reply, err := promptLine("Your Harbour harness path, e.g. ~/git/my-harbour-harness: ")
+		reply, err := promptPath("Your Harbour harness path, e.g. ~/git/my-harbour-harness: ")
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ func runProvision() error {
 	}
 
 	if cfg.WorkspaceRoot == "" {
-		reply, err := promptLine("Workspace root, e.g. ~/git: ")
+		reply, err := promptPath("Workspace root, e.g. ~/git: ")
 		if err != nil {
 			return err
 		}
