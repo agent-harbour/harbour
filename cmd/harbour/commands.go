@@ -313,20 +313,20 @@ func requireProvisionedConfig(requireHarness bool) (Config, string, error) {
 	if err != nil {
 		return Config{}, "", err
 	}
-	configPath, err := configPath()
+	cfgPath, err := configPath()
 	if err != nil {
 		return Config{}, "", err
 	}
 	if cfg.ColimaProfile == "" {
-		return Config{}, "", fmt.Errorf("colima_profile is not set in %s. Run harbour provision", configPath)
+		return Config{}, "", fmt.Errorf("colima_profile is not set in %s. Run harbour provision", cfgPath)
 	}
 	if cfg.WorkspaceRoot == "" {
-		return Config{}, "", fmt.Errorf("workspace_root is not set in %s. Run harbour provision", configPath)
+		return Config{}, "", fmt.Errorf("workspace_root is not set in %s. Run harbour provision", cfgPath)
 	}
 	if requireHarness && cfg.HarnessPath == "" {
-		return Config{}, "", fmt.Errorf("harness_path is not set in %s. Run harbour provision", configPath)
+		return Config{}, "", fmt.Errorf("harness_path is not set in %s. Run harbour provision", cfgPath)
 	}
-	return cfg, configPath, nil
+	return cfg, cfgPath, nil
 }
 
 func buildAgentRemoteScript(cfg Config, yolo bool, agentCommand string, instructionFile string) string {
