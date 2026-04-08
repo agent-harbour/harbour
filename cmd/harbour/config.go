@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/agent-harbour/harbour/cmd/harbour/vm"
 )
 
 var userConfigDir = os.UserConfigDir
@@ -169,4 +171,20 @@ func validateConfig(cfg Config) error {
 		return fmt.Errorf("vm_disk must be positive")
 	}
 	return nil
+}
+
+func (cfg Config) vmConfig() vm.Config {
+	return vm.Config{
+		Backend:         cfg.VMBackend,
+		Profile:         cfg.VMProfile,
+		Runtime:         cfg.VMRuntime,
+		Type:            cfg.VMType,
+		Arch:            cfg.VMArch,
+		CPU:             cfg.VMCPU,
+		Memory:          cfg.VMMemory,
+		Disk:            cfg.VMDisk,
+		MountType:       cfg.VMMountType,
+		ForwardSSHAgent: cfg.VMForwardSSHAgent,
+		NetworkAddress:  cfg.VMNetworkAddress,
+	}
 }
