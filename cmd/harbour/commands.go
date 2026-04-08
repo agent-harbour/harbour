@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+
+	"github.com/agent-harbour/harbour/cmd/harbour/vm"
 )
 
 import _ "embed"
@@ -18,11 +19,11 @@ func runProvision() error {
 	if err != nil {
 		return err
 	}
-	vm, err := resolveVMBackend(cfg)
+	vmBackend, err := vm.Resolve(cfg.vmConfig())
 	if err != nil {
 		return err
 	}
-	if err := vm.EnsureInstalled(); err != nil {
+	if err := vmBackend.EnsureInstalled(); err != nil {
 		return err
 	}
 	cfgPath, err := configPath()
@@ -139,12 +140,14 @@ func runProvision() error {
 	mounts = append(mounts, repoHosts...)
 
 	desiredMounts := desiredMountLines(cfg.HarnessPath, repoHosts)
-	currentMounts, err := vm.CurrentMountLines(cfg)
+	vmCfg := cfg.vmConfig()
+
+	currentMounts, err := vmBackend.CurrentMountLines(vmCfg)
 	if err != nil {
 		return err
 	}
 
-	running, err := vm.Status(cfg)
+	running, err := vmBackend.Status(vmCfg)
 	if err != nil {
 		return err
 	}
@@ -155,24 +158,24 @@ func runProvision() error {
 			for _, line := range formatMountDiff(currentMounts, desiredMounts) {
 				fmt.Printf("  %s\n", line)
 			}
-			ok, err := promptYesNo(fmt.Sprintf("\nRestart %s now to apply mount changes? [y/N] ", vm.Name()))
+			ok, err := promptYesNo(fmt.Sprintf("\nRestart %s now to apply mount changes? [y/N] ", vmBackend.Name()))
 			if err != nil {
 				return err
 			}
 			if !ok {
-				return fmt.Errorf("aborted without restarting %s", vm.Name())
+				return fmt.Errorf("aborted without restarting %s", vmBackend.Name())
 			}
-			if err := vm.Stop(cfg); err != nil {
+			if err := vmBackend.Stop(vmCfg); err != nil {
 				return err
 			}
-			if err := vm.Start(cfg, mounts); err != nil {
+			if err := vmBackend.Start(vmCfg, mounts); err != nil {
 				return err
 			}
 		} else {
 			fmt.Printf("Harbour profile %s is already running.\n", cfg.VMProfile)
 		}
 	} else {
-		if err := vm.Start(cfg, mounts); err != nil {
+		if err := vmBackend.Start(vmCfg, mounts); err != nil {
 			return err
 		}
 	}
@@ -204,7 +207,7 @@ func runProvision() error {
 	if err := os.Chdir(cfg.WorkspaceRoot); err != nil {
 		return err
 	}
-	if err := vm.RunRemoteScript(cfg, provisionVMScript, scriptArgs); err != nil {
+	if err := vmBackend.RunRemoteScript(vmCfg, provisionVMScript, scriptArgs); err != nil {
 		return err
 	}
 
@@ -231,11 +234,12 @@ func runShell() error {
 	if err != nil {
 		return err
 	}
-	vm, err := resolveVMBackend(cfg)
+	vmBackend, err := vm.Resolve(cfg.vmConfig())
 	if err != nil {
 		return err
 	}
-	running, err := vm.Status(cfg)
+	vmCfg := cfg.vmConfig()
+	running, err := vmBackend.Status(vmCfg)
 	if err != nil {
 		return err
 	}
@@ -247,7 +251,7 @@ func runShell() error {
 		return err
 	}
 	command := fmt.Sprintf("cd %q && exec /usr/bin/bash -l", cfg.WorkspaceRoot)
-	return vm.RunRemoteCommand(cfg, command)
+	return vmBackend.RunRemoteCommand(vmCfg, command)
 }
 
 func runAgent(yolo bool) error {
@@ -255,11 +259,12 @@ func runAgent(yolo bool) error {
 	if err != nil {
 		return err
 	}
-	vm, err := resolveVMBackend(cfg)
+	vmBackend, err := vm.Resolve(cfg.vmConfig())
 	if err != nil {
 		return err
 	}
-	running, err := vm.Status(cfg)
+	vmCfg := cfg.vmConfig()
+	running, err := vmBackend.Status(vmCfg)
 	if err != nil {
 		return err
 	}
@@ -289,7 +294,7 @@ func runAgent(yolo bool) error {
 	}
 
 	remoteScript := buildAgentRemoteScript(cfg, yolo, agentCommand, instructionFile)
-	return vm.RunRemoteCommand(cfg, remoteScript)
+	return vmBackend.RunRemoteCommand(vmCfg, remoteScript)
 }
 
 func requireProvisionedConfig(requireHarness bool) (Config, string, error) {
@@ -384,12 +389,4 @@ func equalStringSlices(left []string, right []string) bool {
 		}
 	}
 	return true
-}
-
-func shellQuoteArgs(args []string) string {
-	quoted := make([]string, 0, len(args))
-	for _, arg := range args {
-		quoted = append(quoted, fmt.Sprintf("%q", arg))
-	}
-	return strings.Join(quoted, " ")
 }
