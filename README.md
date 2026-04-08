@@ -14,9 +14,12 @@ Like Docker Compose, but for agent harnesses.
 
 ```sh
 brew tap agent-harbour/harbour
+brew install colima
 brew install agent-harbour/harbour/harbour
 harbour help
 ```
+
+Harbour provisions and runs an isolated Colima VM on the host.
 
 ## Quick Start
 
@@ -34,6 +37,12 @@ harbour help
 
    ```sh
    harbour provision
+   ```
+
+   Install Colima first if it is not already present:
+
+   ```sh
+   brew install colima
    ```
 
    The first run creates Harbour's local config automatically.

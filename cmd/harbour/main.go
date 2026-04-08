@@ -83,6 +83,9 @@ func run(args []string) error {
 func printUsage() {
 	fmt.Println("Usage: harbour [command]")
 	fmt.Println()
+	fmt.Println("Harbour provisions and runs an isolated Colima VM.")
+	fmt.Println("Install Colima before running harbour provision: brew install colima")
+	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println("  provision   Provision the Harbour VM")
 	fmt.Println("  shell       Open a shell in the Harbour VM")

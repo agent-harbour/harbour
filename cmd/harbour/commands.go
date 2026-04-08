@@ -14,7 +14,7 @@ import _ "embed"
 var provisionVMScript string
 
 func runProvision() error {
-	if err := ensureCommand("colima"); err != nil {
+	if err := ensureColima(); err != nil {
 		return err
 	}
 
