@@ -18,8 +18,7 @@ brew install agent-harbour/harbour/harbour
 harbour help
 ```
 
-Harbour provisions and runs an isolated Colima VM on the host.
-Homebrew installs Colima automatically for the formula.
+Harbour provisions and runs an isolated Colima VM on the host. Homebrew installs Colima automatically.
 
 ## Quick Start
 
@@ -38,8 +37,6 @@ Homebrew installs Colima automatically for the formula.
    ```sh
    harbour provision
    ```
-
-   If you are not using Homebrew, install `colima` before provisioning.
 
    The first run creates Harbour's local config automatically.
 
