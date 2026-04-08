@@ -22,10 +22,7 @@ func TestRunWithoutConfigShowsHelp(t *testing.T) {
 	if !strings.Contains(stdout, "Usage: harbour [command]") {
 		t.Fatalf("stdout did not contain help output:\n%s", stdout)
 	}
-	if !strings.Contains(stdout, "Homebrew installs Colima automatically for the formula.") {
-		t.Fatalf("stdout did not contain Homebrew Colima guidance:\n%s", stdout)
-	}
-	if !strings.Contains(stdout, "If you are not using Homebrew, install Colima before running harbour provision: brew install colima") {
+	if !strings.Contains(stdout, "Colima is required before running harbour provision.") {
 		t.Fatalf("stdout did not contain Colima prerequisite guidance:\n%s", stdout)
 	}
 	if stderr != "" {
