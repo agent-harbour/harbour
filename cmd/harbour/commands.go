@@ -163,10 +163,7 @@ func runProvision() error {
 			if !ok {
 				return fmt.Errorf("aborted without restarting %s", vmBackend.Name())
 			}
-			if err := vmBackend.Stop(); err != nil {
-				return err
-			}
-			if err := vmBackend.Start(mounts); err != nil {
+			if err := vmBackend.Reconfigure(mounts); err != nil {
 				return err
 			}
 		} else {

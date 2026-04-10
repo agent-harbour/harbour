@@ -25,12 +25,32 @@ func TestResolveReturnsColimaBackend(t *testing.T) {
 	}
 }
 
+func TestResolveReturnsLimaBackend(t *testing.T) {
+	cfg := Config{
+		Backend: "lima",
+		Profile: "harbour",
+	}
+
+	backend, err := Resolve(cfg)
+	if err != nil {
+		t.Fatalf("Resolve() returned error: %v", err)
+	}
+
+	lima, ok := backend.(Lima)
+	if !ok {
+		t.Fatalf("Resolve() returned %T, want vm.Lima", backend)
+	}
+	if lima.cfg != cfg {
+		t.Fatalf("resolved backend cfg = %#v, want %#v", lima.cfg, cfg)
+	}
+}
+
 func TestResolveRejectsUnsupportedBackend(t *testing.T) {
-	_, err := Resolve(Config{Backend: "lima"})
+	_, err := Resolve(Config{Backend: "badger"})
 	if err == nil {
 		t.Fatal("Resolve() returned nil error")
 	}
-	if !strings.Contains(err.Error(), "unsupported vm_backend=lima") {
+	if !strings.Contains(err.Error(), "unsupported vm_backend=badger") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
