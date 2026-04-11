@@ -190,6 +190,17 @@ func TestSaveConfigRejectsInvalidValues(t *testing.T) {
 	}
 }
 
+func TestSaveConfigAcceptsLimaBackend(t *testing.T) {
+	withTestConfigDir(t)
+
+	cfg := defaultConfig()
+	cfg.VMBackend = "lima"
+
+	if err := saveConfig(cfg); err != nil {
+		t.Fatalf("saveConfig() returned error: %v", err)
+	}
+}
+
 func TestParseRepoHosts(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)

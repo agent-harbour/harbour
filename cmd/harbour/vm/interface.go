@@ -22,6 +22,7 @@ type Backend interface {
 	Status() (bool, error)
 	CurrentMountLines() ([]string, error)
 	Start(mounts []string) error
+	Reconfigure(mounts []string) error
 	Stop() error
 	RunRemoteCommand(command string) error
 	RunRemoteScript(script string, args []string) error
@@ -31,6 +32,8 @@ func Resolve(cfg Config) (Backend, error) {
 	switch cfg.Backend {
 	case "colima":
 		return Colima{cfg: cfg}, nil
+	case "lima":
+		return Lima{cfg: cfg}, nil
 	default:
 		return nil, fmt.Errorf("unsupported vm_backend=%s", cfg.Backend)
 	}

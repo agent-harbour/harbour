@@ -144,9 +144,9 @@ func saveConfig(cfg Config) error {
 
 func validateConfig(cfg Config) error {
 	switch cfg.VMBackend {
-	case "colima":
+	case "colima", "lima":
 	default:
-		return fmt.Errorf("vm_backend must be colima")
+		return fmt.Errorf("vm_backend must be colima or lima")
 	}
 
 	switch cfg.ActiveAgent {

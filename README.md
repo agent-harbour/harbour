@@ -20,6 +20,7 @@ harbour help
 
 Harbour provisions and runs an isolated Colima VM on the host.
 Homebrew installs Colima automatically for the formula.
+Set `vm_backend` to `lima` to target a Lima-managed VM instead.
 
 ## Quick Start
 
@@ -100,6 +101,8 @@ Harbour stores its config as a single JSON file.
   "default_command": "agent"
 }
 ```
+
+Supported `vm_backend` values are `colima` and `lima`.
 
 ## Development
 
