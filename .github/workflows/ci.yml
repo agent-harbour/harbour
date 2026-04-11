@@ -75,12 +75,6 @@ jobs:
           mkdir -p "${workspace_root}/your-org/frontend"
           mkdir -p "${workspace_root}/your-org/backend"
           mkdir -p "${workspace_root}/your-org/lambdas"
-          cat > "${harness_path}/repos.yaml" <<'EOF'
-          repos:
-            - host_path: ./your-org/frontend
-            - host_path: ./your-org/backend
-            - host_path: ./your-org/lambdas
-          EOF
 
       - name: Seed CI Colima settings
         run: |
