@@ -48,9 +48,11 @@ Homebrew installs Colima automatically for the formula.
    Provision prompts for:
 
    - Path to your harness
-   - Workspace root (where you repos live)
+   - Workspace root (where your repos live)
    - Agent to provision
    - The default `harbour` command
+
+   If Harbour finds a legacy config that still uses `colima_*` keys, it prompts once to migrate it to the current `vm_*` schema.
 
 3. Run the agent
 
