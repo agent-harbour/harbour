@@ -233,7 +233,7 @@ func validateConfig(cfg Config) error {
 	switch cfg.VMBackend {
 	case "colima":
 	default:
-		return fmt.Errorf("vm_backend must be colima")
+		return fmt.Errorf("unsupported vm_backend=%q (supported: colima)", cfg.VMBackend)
 	}
 
 	switch cfg.ActiveAgent {

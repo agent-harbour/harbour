@@ -236,6 +236,9 @@ func runShell() error {
 	if err != nil {
 		return err
 	}
+	if err := vmBackend.EnsureInstalled(); err != nil {
+		return err
+	}
 	running, err := vmBackend.Status()
 	if err != nil {
 		return err
@@ -258,6 +261,9 @@ func runAgent(yolo bool) error {
 	}
 	vmBackend, err := vm.Resolve(cfg.vmConfig())
 	if err != nil {
+		return err
+	}
+	if err := vmBackend.EnsureInstalled(); err != nil {
 		return err
 	}
 	running, err := vmBackend.Status()
