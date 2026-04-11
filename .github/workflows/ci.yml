@@ -86,16 +86,19 @@ jobs:
       - name: Verify provisioned agent
         run: |
           workspace_root="$(dirname "$GITHUB_WORKSPACE")"
+          repo_root="${GITHUB_WORKSPACE}"
           config_path="${HOME}/Library/Application Support/harbour/config.json"
           colima status -p harbour
           grep -F "\"active_agent\": \"${{ matrix.agent }}\"" "${config_path}"
+          ls -la "${workspace_root}"
+          ls -la "${repo_root}"
           case "${{ matrix.agent }}" in
             codex)
-              test -L "${workspace_root}/AGENTS.md"
+              test -L "${workspace_root}/AGENTS.md" || test -L "${repo_root}/AGENTS.md"
               colima ssh -p harbour -- /usr/bin/env bash -lc 'command -v codex'
               ;;
             claude)
-              test -L "${workspace_root}/CLAUDE.md"
+              test -L "${workspace_root}/CLAUDE.md" || test -L "${repo_root}/CLAUDE.md"
               colima ssh -p harbour -- /usr/bin/env bash -lc 'command -v claude'
               ;;
           esac
