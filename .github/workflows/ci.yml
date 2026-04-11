@@ -68,18 +68,24 @@ jobs:
       - name: Set up harness template
         run: |
           harness_path="${RUNNER_TEMP}/harbour-harness"
-          harness_ref="265cd943503346368d1e99a047f27520f43c8009"
+          workspace_root="${RUNNER_TEMP}/workspace"
+          harness_ref="6d0d5625c120367e4051ee6d398830130040a54d"
           git clone https://github.com/agent-harbour/harbour-harness-template.git "${harness_path}"
           git -C "${harness_path}" checkout "${harness_ref}"
+          mkdir -p "${workspace_root}/your-org/frontend"
+          mkdir -p "${workspace_root}/your-org/backend"
+          mkdir -p "${workspace_root}/your-org/lambdas"
           cat > "${harness_path}/repos.yaml" <<'EOF'
           repos:
-            - host_path: harbour
+            - host_path: ./your-org/frontend
+            - host_path: ./your-org/backend
+            - host_path: ./your-org/lambdas
           EOF
 
       - name: Run harbour provision
         run: |
           harness_path="${RUNNER_TEMP}/harbour-harness"
-          workspace_root="$(dirname "$GITHUB_WORKSPACE")"
+          workspace_root="${RUNNER_TEMP}/workspace"
           {
             printf '%s\n' "${harness_path}"
             printf '%s\n' "${workspace_root}"
@@ -89,21 +95,19 @@ jobs:
 
       - name: Verify provisioned agent
         run: |
-          workspace_root="$(dirname "$GITHUB_WORKSPACE")"
-          repo_root="${GITHUB_WORKSPACE}"
+          workspace_root="${RUNNER_TEMP}/workspace"
           config_path="${HOME}/Library/Application Support/harbour/config.json"
           colima status -p harbour
           grep -F "\"active_agent\": \"${{ matrix.agent }}\"" "${config_path}"
           ls -la "${workspace_root}"
-          ls -la "${repo_root}"
           case "${{ matrix.agent }}" in
             codex)
-              test -L "${workspace_root}/AGENTS.md" || test -L "${repo_root}/AGENTS.md"
+              test -L "${workspace_root}/AGENTS.md"
               colima ssh -p harbour -- /usr/bin/env bash -lc 'command -v codex'
               ;;
             claude)
-              test -L "${workspace_root}/CLAUDE.md" || test -L "${repo_root}/CLAUDE.md"
-              colima ssh -p harbour -- /usr/bin/env bash -lc 'command -v claude'
+              test -L "${workspace_root}/CLAUDE.md"
+              colima ssh -p harbour -- /usr/bin/env bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v claude'
               ;;
           esac
 
