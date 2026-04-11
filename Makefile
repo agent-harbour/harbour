@@ -5,13 +5,15 @@ DIST_DIR := dist
 RELEASE_SRC_DIR := build/$(VERSION)
 RELEASE_TAG_PATTERN := ^v[0-9]+\.[0-9]+\.[0-9]+$$
 
-.PHONY: help build dist require-release-version prepare-dist-source fmt test
+.PHONY: help build dist require-release-version prepare-dist-source fmt fmt-check vet test
 
 help:
 	@printf "Available targets:\n"
 	@printf "  make build                      Build the harbour binary for macOS ARM64\n"
 	@printf "  make dist VERSION=vX.Y.Z        Build Darwin release archives and checksums from the origin tag\n"
 	@printf "  make fmt                        Format the Go source\n"
+	@printf "  make fmt-check                  Fail if Go source is not gofmt-formatted\n"
+	@printf "  make vet                        Run Go static analysis\n"
 	@printf "  make test                       Run the Go tests\n"
 
 build:
@@ -47,6 +49,12 @@ $(DIST_DIR)/sha256sums.txt: $(DIST_DIR)/harbour-$(VERSION)-darwin-amd64.tar.gz $
 
 fmt:
 	gofmt -w ./cmd/harbour/*.go
+
+fmt-check:
+	@test -z "$$(gofmt -l ./cmd/harbour/*.go)" || (echo "Run make fmt" >&2; gofmt -l ./cmd/harbour/*.go; exit 1)
+
+vet:
+	go vet ./...
 
 test:
 	go test ./...
