@@ -139,6 +139,10 @@ func runProvision() error {
 	mounts := []string{cfg.HarnessPath}
 	mounts = append(mounts, repoHosts...)
 
+	if err := os.Chdir(cfg.WorkspaceRoot); err != nil {
+		return err
+	}
+
 	desiredMounts := desiredMountLines(cfg.HarnessPath, repoHosts)
 	currentMounts, err := vmBackend.CurrentMountLines()
 	if err != nil {
@@ -202,9 +206,6 @@ func runProvision() error {
 		cfg.WorkspaceRoot,
 	}
 
-	if err := os.Chdir(cfg.WorkspaceRoot); err != nil {
-		return err
-	}
 	if err := vmBackend.RunRemoteScript(provisionVMScript, scriptArgs); err != nil {
 		return err
 	}
