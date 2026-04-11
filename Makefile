@@ -48,10 +48,10 @@ $(DIST_DIR)/sha256sums.txt: $(DIST_DIR)/harbour-$(VERSION)-darwin-amd64.tar.gz $
 	cd $(DIST_DIR) && shasum -a 256 harbour-$(VERSION)-darwin-amd64.tar.gz harbour-$(VERSION)-darwin-arm64.tar.gz > sha256sums.txt
 
 fmt:
-	gofmt -w ./cmd/harbour/*.go
+	gofmt -w $$(find . -name '*.go' -type f)
 
 fmt-check:
-	@test -z "$$(gofmt -l ./cmd/harbour/*.go)" || (echo "Run make fmt" >&2; gofmt -l ./cmd/harbour/*.go; exit 1)
+	@test -z "$$(gofmt -l $$(find . -name '*.go' -type f))" || (echo "Run make fmt" >&2; gofmt -l $$(find . -name '*.go' -type f); exit 1)
 
 vet:
 	go vet ./...
