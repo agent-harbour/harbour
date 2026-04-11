@@ -160,6 +160,21 @@ func validateConfig(cfg Config) error {
 	default:
 		return fmt.Errorf("unsupported vm_backend=%q (supported: colima)", cfg.VMBackend)
 	}
+	if cfg.VMProfile == "" {
+		return fmt.Errorf("vm_profile must not be empty")
+	}
+	if cfg.VMRuntime == "" {
+		return fmt.Errorf("vm_runtime must not be empty")
+	}
+	if cfg.VMType == "" {
+		return fmt.Errorf("vm_type must not be empty")
+	}
+	if cfg.VMArch == "" {
+		return fmt.Errorf("vm_arch must not be empty")
+	}
+	if cfg.VMMountType == "" {
+		return fmt.Errorf("vm_mount_type must not be empty")
+	}
 
 	switch cfg.ActiveAgent {
 	case "", "codex", "claude":

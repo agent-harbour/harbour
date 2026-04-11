@@ -247,6 +247,21 @@ func TestSaveConfigRejectsInvalidValues(t *testing.T) {
 	}
 }
 
+func TestSaveConfigRejectsEmptyVMProfile(t *testing.T) {
+	withTestConfigDir(t)
+
+	cfg := defaultConfig()
+	cfg.VMProfile = ""
+
+	err := saveConfig(cfg)
+	if err == nil {
+		t.Fatal("saveConfig() returned nil error for invalid config")
+	}
+	if !strings.Contains(err.Error(), "vm_profile must not be empty") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestParseRepoHosts(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
