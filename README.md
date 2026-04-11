@@ -1,5 +1,7 @@
 # Harbour
 
+[![CI](https://github.com/agent-harbour/harbour/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/agent-harbour/harbour/actions/workflows/ci.yml)
+
 Run agents across your repositories in a controlled, shareable environment.
 
 Like Docker Compose, but for agent harnesses.
