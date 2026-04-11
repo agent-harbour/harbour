@@ -1,6 +1,6 @@
 # Harbour
 
-[![CI](https://github.com/agent-harbour/harbour/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/agent-harbour/harbour/actions/workflows/ci.yml)
+[![CI](https://github.com/agent-harbour/harbour/actions/workflows/master.yml/badge.svg?branch=master)](https://github.com/agent-harbour/harbour/actions/workflows/master.yml)
 
 Run agents across your repositories in a controlled, shareable environment.
 
