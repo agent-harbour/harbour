@@ -92,6 +92,15 @@ func promptChoice(prompt string, allowed []string, defaultValue string) (string,
 	}
 }
 
+func promptAgentInstall(agent string) (bool, error) {
+	name := "Codex"
+	if agent == "claude" {
+		name = "Claude Code"
+	}
+	reply, err := promptChoice(fmt.Sprintf("Run the %s installer? [Y/n] ", name), []string{"y", "yes", "n", "no"}, "y")
+	return reply == "y" || reply == "yes", err
+}
+
 func promptYesNo(prompt string) (bool, error) {
 	reply, err := promptLine(prompt)
 	if err != nil {

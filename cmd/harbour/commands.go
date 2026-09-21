@@ -111,24 +111,6 @@ func runProvision() error {
 		return err
 	}
 
-	requestedVersion := cfg.CodexVersion
-	switch selectedAgent {
-	case "codex":
-		requestedVersion = cfg.CodexVersion
-		if requestedVersion == "latest" {
-			fmt.Printf("Resolving latest Codex release for Harbour profile %s\n", cfg.VMProfile)
-		} else {
-			fmt.Printf("Installing Codex %s in Harbour profile %s\n", requestedVersion, cfg.VMProfile)
-		}
-	case "claude":
-		requestedVersion = cfg.ClaudeCodeVersion
-		if requestedVersion == "latest" {
-			fmt.Printf("Resolving latest Claude Code release for Harbour profile %s\n", cfg.VMProfile)
-		} else {
-			fmt.Printf("Installing Claude Code %s in Harbour profile %s\n", requestedVersion, cfg.VMProfile)
-		}
-	}
-
 	mounts := []string{cfg.WorkspacePath}
 
 	if err := os.Chdir(cfg.WorkspacePath); err != nil {
@@ -182,17 +164,21 @@ func runProvision() error {
 	}
 	agentsB64 := base64.StdEncoding.EncodeToString(agentsData)
 
+	runInstaller, err := promptAgentInstall(selectedAgent)
+	if err != nil {
+		return err
+	}
+
 	hostUID := fmt.Sprintf("%d", os.Getuid())
 	hostGID := fmt.Sprintf("%d", os.Getgid())
 	scriptArgs := []string{
 		selectedAgent,
-		requestedVersion,
+		fmt.Sprint(runInstaller),
 		agentsPath,
 		skillsPath,
 		agentsB64,
 		hostUID,
 		hostGID,
-		cfg.WorkspacePath,
 	}
 
 	if err := vmBackend.RunRemoteScript(provisionVMScript, scriptArgs); err != nil {
@@ -208,9 +194,9 @@ func runProvision() error {
 
 	switch selectedAgent {
 	case "codex":
-		fmt.Printf("Provisioned Codex %s, linked ~/.codex/AGENTS.md to the harness, and linked the harness skills directory into ~/.codex/skills.\n", requestedVersion)
+		fmt.Printf("Provisioned Codex, linked ~/.codex/AGENTS.md to the harness, and linked the harness skills directory into ~/.codex/skills.\n")
 	case "claude":
-		fmt.Printf("Provisioned Claude Code %s, linked ~/.claude/CLAUDE.md to the harness, and linked the harness skills directory into ~/.claude/skills.\n", requestedVersion)
+		fmt.Printf("Provisioned Claude Code, linked ~/.claude/CLAUDE.md to the harness, and linked the harness skills directory into ~/.claude/skills.\n")
 	}
 	fmt.Printf("Default command is harbour %s.\n", cfg.DefaultCommand)
 	fmt.Println("Run harbour to use the default command, or run harbour agent, harbour yolo, or harbour shell explicitly.")

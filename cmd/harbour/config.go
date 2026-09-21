@@ -25,8 +25,6 @@ type Config struct {
 	VMMountType       string `json:"vm_mount_type"`
 	VMForwardSSHAgent bool   `json:"vm_forward_ssh_agent"`
 	VMNetworkAddress  bool   `json:"vm_network_address"`
-	CodexVersion      string `json:"codex_version"`
-	ClaudeCodeVersion string `json:"claude_code_version"`
 	HarnessPath       string `json:"harness_path"`
 	WorkspacePath     string `json:"workspace_path"`
 	ActiveAgent       string `json:"active_agent"`
@@ -46,8 +44,6 @@ func defaultConfig() Config {
 		VMMountType:       "virtiofs",
 		VMForwardSSHAgent: true,
 		VMNetworkAddress:  false,
-		CodexVersion:      "latest",
-		ClaudeCodeVersion: "latest",
 		HarnessPath:       "",
 		WorkspacePath:     "",
 		ActiveAgent:       "",

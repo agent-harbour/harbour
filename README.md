@@ -68,6 +68,16 @@ Example workspace:
    - `harness_path`
    - Agent to provision
    - The default `harbour` command
+   - Whether to run the agent installer (defaults to Yes)
+
+   The official installer selects the latest release. It runs whenever you accept,
+   even if the agent is already installed. Declining keeps the existing installation.
+   Harbour runs `codex --version` or `claude --version` and shows its output before
+   completing setup. If the command fails or is missing, provisioning stops.
+
+   Release versions are not stored in Harbour configuration. Legacy
+   `codex_version` and `claude_code_version` fields are ignored and removed when
+   the configuration is next saved.
 
 4. Run the agent
 
@@ -111,8 +121,6 @@ Harbour stores its config as a single JSON file.
   "vm_mount_type": "virtiofs",
   "vm_forward_ssh_agent": true,
   "vm_network_address": false,
-  "codex_version": "latest",
-  "claude_code_version": "latest",
   "harness_path": "",
   "workspace_path": "",
   "active_agent": "",

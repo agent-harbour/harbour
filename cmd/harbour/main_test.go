@@ -477,3 +477,40 @@ func TestMain(m *testing.M) {
 	userConfigDir = os.UserConfigDir
 	os.Exit(status)
 }
+
+func TestLegacyAgentVersionsAreIgnoredAndRemovedOnSave(t *testing.T) {
+	withTestConfigDir(t)
+	cfg := defaultConfig()
+	if err := saveConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	path, err := configPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data = []byte(strings.Replace(string(data), "{", `{"codex_version":"0.1.0","claude_code_version":"1.0.0",`, 1))
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := loadConfig(false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded != cfg {
+		t.Fatalf("config changed: %+v", loaded)
+	}
+	if err := saveConfig(loaded); err != nil {
+		t.Fatal(err)
+	}
+	data, err = os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "codex_version") || strings.Contains(string(data), "claude_code_version") {
+		t.Fatalf("legacy versions retained: %s", data)
+	}
+}
