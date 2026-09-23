@@ -68,6 +68,7 @@ Example workspace:
    - `harness_path`
    - Agent to provision
    - The default `harbour` command
+   - Whether to run the agent installer
 
 4. Run the agent
 
@@ -111,8 +112,6 @@ Harbour stores its config as a single JSON file.
   "vm_mount_type": "virtiofs",
   "vm_forward_ssh_agent": true,
   "vm_network_address": false,
-  "codex_version": "latest",
-  "claude_code_version": "latest",
   "harness_path": "",
   "workspace_path": "",
   "active_agent": "",

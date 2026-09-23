@@ -48,6 +48,14 @@ The host-side CLI is Go. The in-VM provision step is still an embedded Bash
 script because that boundary is already shell-shaped and mostly imperative
 machine setup.
 
+Provisioning asks whether to run the selected agent's official installer, defaulting
+to Yes. Both Codex and Claude receive `latest`; the installers select the release.
+Declining keeps the existing installation. Harbour runs the CLI with `--version`
+and shows its output before changing agent commands or harness links. A non-zero
+exit stops provisioning. Harbour does not parse or compare version strings.
+
+If Codex reports a sandbox error, use `harbour shell` to diagnose and fix the VM.
+
 ## Path Model
 
 Mounted repos keep the same absolute paths inside the VM as on the host.

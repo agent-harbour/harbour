@@ -99,8 +99,6 @@ jobs:
             "vm_mount_type": "sshfs",
             "vm_forward_ssh_agent": false,
             "vm_network_address": false,
-            "codex_version": "latest",
-            "claude_code_version": "latest",
             "harness_path": "",
             "workspace_path": "",
             "active_agent": "",
@@ -116,7 +114,7 @@ jobs:
             printf '%s\n' "${workspace_path}"
             printf '%s\n' "${harness_path}"
             printf '%s\n' "${{ matrix.agent }}"
-            printf '\n'
+            printf '\n\n'
           } | ./bin/harbour provision
 
       - name: Verify provisioned agent
